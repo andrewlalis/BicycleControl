@@ -41,7 +41,7 @@ U8X8_SSD1306_128X64_NONAME_4W_SW_SPI screen(OLED_CLK, OLED_MOSI, OLED_CS, OLED_D
 #define IN_mode 17
 #define IN_left 18
 #define IN_right 19
-#define MODE_MAX 2
+#define MODE_MAX 3
 
 //Global variables
 //Shift register buffer.
@@ -180,6 +180,18 @@ short skyrim[] = {
 	NOTE_REST, 8
 };
 
+//Song variables.
+short songCount = 2;
+short currentSong = 0;
+short* songs[] = {
+	skyrim,
+	beep1,
+};
+String songNames[] = {
+	"Skyrim",
+	"Beep1",
+};
+
 //-------------------|
 //GRAPHICS FUNCTIONS:|
 //-------------------|
@@ -233,6 +245,15 @@ void drawModeStatus() {
 	screen.setInverseFont(0);
 	screen.setCursor(14, 2);
 	screen.print((int)mode);
+}
+
+void drawSongStatus() {
+	screen.setFont(u8x8_font_artossans8_r);
+	screen.setInverseFont(0);
+	screen.setCursor(6, 4);
+	screen.print("         ");
+	screen.setCursor(6, 4);
+	screen.print(songNames[currentSong]);
 }
 
 //-------------------|
@@ -354,6 +375,18 @@ void updateInputs() {
 		case 1:
 			if (!blinkerLeft) activateBlinker(0);
 			break;
+		case 2:
+			if (currentSong == 0) {
+				currentSong = songCount - 1;
+			}
+			else {
+				currentSong--;
+			}
+			drawSongStatus();
+			break;
+		case 3:
+			isPlaying = false;
+			break;
 		}
 		//Serial.println("Left pressed.");
 	}
@@ -367,6 +400,17 @@ void updateInputs() {
 			break;
 		case 1:
 			if (!blinkerRight) activateBlinker(1);
+			break;
+		case 2:
+			if (currentSong == songCount - 1) {
+				currentSong = 0;
+			} else {
+				currentSong++;
+			}
+			drawSongStatus();
+			break;
+		case 3:
+			playSequence(songs[currentSong]);
 			break;
 		}
 		//Serial.println("Right pressed.");
@@ -522,8 +566,8 @@ void setup() {
 	startupPeripherals();
 	startupScreen();
 	drawMainScreen();
+	drawSongStatus();
 	updateAll();
-	playSequence(beep1);
 }
 
 void loop() {
