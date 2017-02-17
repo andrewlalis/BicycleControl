@@ -1,6 +1,4 @@
 #pragma once
-
-//Musical notes:
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -91,23 +89,3 @@
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
 #define NOTE_REST 0
-
-class Musical
-{
-public:
-	Musical();
-	~Musical();
-	static void setBPM(short newBPM);
-	static void setBuzzerPin(short pinNumber);
-	static void playNote(int note, int duration);
-	static void playSequence(short* sequence, int length);
-	static void update();
-private:
-	static short BPM, Q, H, E, S, W, pin;
-	static short* currentSong;
-	static int songLength;
-	static bool isPlaying;
-	static int currentNote;
-	static unsigned long lastNoteTime;
-};
-
