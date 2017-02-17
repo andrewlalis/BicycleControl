@@ -472,7 +472,7 @@ void setIndicatorColor(byte red, byte green, byte blue) {
 
 void setBPM(short newBPM) {
 	BPM = newBPM;
-	noteDuration = 15000 / BPM;
+	noteDuration = 240000 / BPM;
 }
 
 //Begins playing a new sequence of the form: {Length, BPM, note 1, time 1, note 2, time 2, ...}
