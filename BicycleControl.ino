@@ -1,7 +1,7 @@
 #include <U8x8lib.h>
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include "Musical.h"
+#include "Pitches.h"
 #ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
 #endif
@@ -57,129 +57,128 @@ unsigned long blinkerLeftLastUpdate = 0;
 char mode = 0;
 bool modePressed = 0;
 unsigned long modePressedTime = 0;
-//Left option button.
-bool leftPressed = 0;
-unsigned long leftPressedTime = 0;
-//Right option button.
-bool rightPressed = 0;
-unsigned long rightPressedTime = 0;
+bool leftPressed, rightPressed = 0;
+unsigned long leftPressedTime, rightPressedTime = 0;
+//Music variables.
+short BPM, noteDuration;
+short* currentSequence;
+bool isPlaying = false;
+int currentNoteIndex;
+unsigned long noteEndTime;
 
-/*
-* Song file: bpm, followed by notes and a byte representing what division of a note it is.
-*/
-short mySong[] = {
-	120,
-	NOTE_D5, E,
-	NOTE_E5, E,
-	NOTE_F5, Q + E,
-	NOTE_F5, E,
-	NOTE_F5, E,
-	NOTE_G5, E,
-	NOTE_A5, Q + E,
-	NOTE_A5, E,
-	NOTE_A5, E,
-	NOTE_C5, E,//10
-	NOTE_G5, Q + E,
-	NOTE_G5, E,
-	NOTE_F5, E,
-	NOTE_E5, E,
-	NOTE_D5, Q + E,
-	NOTE_D5, E,
-	NOTE_D5, E,
-	NOTE_E5, E,
-	NOTE_F5, Q + E,
-	NOTE_F5, E,//20
-	NOTE_F5, E,
-	NOTE_G5, E,
-	NOTE_A5, Q + E,
-	NOTE_A5, E,
-	NOTE_A5, E,
-	NOTE_C5, E,
-	NOTE_D5, Q + E,
-	NOTE_D5, E,
-	NOTE_C5, E,
-	NOTE_E5, E,//30
-	NOTE_D5, Q + E,
-	NOTE_D5, E,
-	NOTE_D5, E,
-	NOTE_E5, E,
-	NOTE_F5, Q,
-	NOTE_E5, E,
-	NOTE_E5, E,
-	NOTE_D5, Q,
-	NOTE_C5, Q,
-	NOTE_B5, E,//40
-	NOTE_B5, E,
-	NOTE_A5, Q,
-	NOTE_G5, Q + E,
-	NOTE_G5, E,
-	NOTE_F5, E,
-	NOTE_A5, E,
-	NOTE_G5, Q + E,
-	NOTE_G5, Q,
-	NOTE_F5, S,
-	NOTE_E5, S,//50
-	NOTE_F5, Q,
-	NOTE_F5, S,
-	NOTE_E5, S,
-	NOTE_F5, Q,
-	NOTE_F5, S,
-	NOTE_E5, S,
-	NOTE_G5, E,
-	NOTE_F5, E,
-	NOTE_E5, E,
-	NOTE_D5, Q,//60
-	NOTE_D5, S,
-	NOTE_C5, S,
-	NOTE_D5, Q,
-	NOTE_D5, S,
-	NOTE_C5, S,
-	NOTE_D5, Q,
-	NOTE_C5, S,
-	NOTE_D5, S,
-	NOTE_E5, E,
-	NOTE_F5, E,//70
-	NOTE_C5, E,
-	NOTE_D5, Q,
-	NOTE_D5, S,
-	NOTE_E5, S,
-	NOTE_F5, Q,
-	NOTE_F5, S,
-	NOTE_G5, S,
-	NOTE_A5, Q,
-	NOTE_E5, S,
-	NOTE_F5, S,//80
-	NOTE_G5, E,
-	NOTE_F5, E,
-	NOTE_E5, E,
-	NOTE_D5, Q,
-	NOTE_D5, S,
-	NOTE_C5, S,
-	NOTE_D5, Q,
-	NOTE_D5, S,
-	NOTE_C5, S,
-	NOTE_D5, Q,//90
-	NOTE_C5, S,
-	NOTE_D5, S,
-	NOTE_E5, E,
-	NOTE_F5, E,
-	NOTE_C5, E,
-	NOTE_D5, Q + E,
-	NOTE_D5, Q,
-	NOTE_REST, E,
-	NOTE_D5, Q,
-	NOTE_REST, E,//100
-	NOTE_D5, Q,
-	NOTE_REST, E,
-	NOTE_D5, Q,
-	NOTE_REST, E
+short beep1[] = {
+	3, 100,
+	NOTE_A4, 4,
+	NOTE_E7, 4,
+	NOTE_C2, 4
 };
 
-const short beep1[] = {
-	100,
-	NOTE_A4, Q,
-	NOTE_E7, Q,
-	NOTE_C2, Q
+short skyrim[] = {
+	104, 120,
+	NOTE_D5, 8,
+	NOTE_E5, 8,
+	NOTE_F5, 8 / 3,
+	NOTE_F5, 8,
+	NOTE_F5, 8,
+	NOTE_G5, 8,
+	NOTE_A5, 8 / 3,
+	NOTE_A5, 8,
+	NOTE_A5, 8,
+	NOTE_C5, 8,//10
+	NOTE_G5, 8 / 3,
+	NOTE_G5, 8,
+	NOTE_F5, 8,
+	NOTE_E5, 8,
+	NOTE_D5, 8 / 3,
+	NOTE_D5, 8,
+	NOTE_D5, 8,
+	NOTE_E5, 8,
+	NOTE_F5, 8 / 3,
+	NOTE_F5, 8,//20
+	NOTE_F5, 8,
+	NOTE_G5, 8,
+	NOTE_A5, 8 / 3,
+	NOTE_A5, 8,
+	NOTE_A5, 8,
+	NOTE_C5, 8,
+	NOTE_D5, 8 / 3,
+	NOTE_D5, 8,
+	NOTE_C5, 8,
+	NOTE_E5, 8,//30
+	NOTE_D5, 8 / 3,
+	NOTE_D5, 8,
+	NOTE_D5, 8,
+	NOTE_E5, 8,
+	NOTE_F5, 4,
+	NOTE_E5, 8,
+	NOTE_E5, 8,
+	NOTE_D5, 4,
+	NOTE_C5, 4,
+	NOTE_B5, 8,//40
+	NOTE_B5, 8,
+	NOTE_A5, 4,
+	NOTE_G5, 8 / 3,
+	NOTE_G5, 8,
+	NOTE_F5, 8,
+	NOTE_A5, 8,
+	NOTE_G5, 8 / 3,
+	NOTE_G5, 4,
+	NOTE_F5, 16,
+	NOTE_E5, 16,//50
+	NOTE_F5, 4,
+	NOTE_F5, 16,
+	NOTE_E5, 16,
+	NOTE_F5, 4,
+	NOTE_F5, 16,
+	NOTE_E5, 16,
+	NOTE_G5, 8,
+	NOTE_F5, 8,
+	NOTE_E5, 8,
+	NOTE_D5, 4,//60
+	NOTE_D5, 16,
+	NOTE_C5, 16,
+	NOTE_D5, 4,
+	NOTE_D5, 16,
+	NOTE_C5, 16,
+	NOTE_D5, 4,
+	NOTE_C5, 16,
+	NOTE_D5, 16,
+	NOTE_E5, 8,
+	NOTE_F5, 8,//70
+	NOTE_C5, 8,
+	NOTE_D5, 4,
+	NOTE_D5, 16,
+	NOTE_E5, 16,
+	NOTE_F5, 4,
+	NOTE_F5, 16,
+	NOTE_G5, 16,
+	NOTE_A5, 4,
+	NOTE_E5, 16,
+	NOTE_F5, 16,//80
+	NOTE_G5, 8,
+	NOTE_F5, 8,
+	NOTE_E5, 8,
+	NOTE_D5, 4,
+	NOTE_D5, 16,
+	NOTE_C5, 16,
+	NOTE_D5, 4,
+	NOTE_D5, 16,
+	NOTE_C5, 16,
+	NOTE_D5, 4,//90
+	NOTE_C5, 16,
+	NOTE_D5, 16,
+	NOTE_E5, 8,
+	NOTE_F5, 8,
+	NOTE_C5, 8,
+	NOTE_D5, 8 / 3,
+	NOTE_D5, 4,
+	NOTE_REST, 8,
+	NOTE_D5, 4,
+	NOTE_REST, 8,//100
+	NOTE_D5, 4,
+	NOTE_REST, 8,
+	NOTE_D5, 4,
+	NOTE_REST, 8
 };
 
 //-------------------|
@@ -383,10 +382,26 @@ void updateInputs() {
 	}
 }
 
+//Updates the music player, and potentially quits the music.
+void updateSoundPlay() {
+	if (isPlaying && (noteEndTime < millis()) && currentNoteIndex < currentSequence[0]) {
+		//It is necessary to play the next note.
+		int realNoteIndex = currentNoteIndex * 2 + 2;
+		int realDuration = noteDuration / currentSequence[currentNoteIndex * 2 + 3];
+		tone(BUZZER, currentSequence[realNoteIndex], realDuration);
+		noteEndTime = millis() + realDuration;
+		currentNoteIndex++;
+	}
+	if (currentNoteIndex == currentSequence[0]) {
+		isPlaying = false;
+	}
+}
+
 //Updates all modules.
 void updateAll() {
 	updateBlinkerStatus();
 	updateInputs();
+	updateSoundPlay();
 }
 
 //-------------------|
@@ -452,6 +467,24 @@ void setIndicatorColor(byte red, byte green, byte blue) {
 }
 
 //-------------------|
+//MUSIC FUNCTIONS:   |
+//-------------------|
+
+void setBPM(short newBPM) {
+	BPM = newBPM;
+	noteDuration = 15000 / BPM;
+}
+
+//Begins playing a new sequence of the form: {Length, BPM, note 1, time 1, note 2, time 2, ...}
+void playSequence(short* sequence) {
+	currentSequence = sequence;
+	setBPM(sequence[1]);
+	currentNoteIndex = 0;
+	noteEndTime = 0;
+	isPlaying = true;
+}
+
+//-------------------|
 //ERROR CHECKING:    |
 //-------------------|
 
@@ -489,13 +522,12 @@ void setup() {
 	startupScreen();
 	drawMainScreen();
 	updateAll();
-	Musical::setBuzzerPin(BUZZER);
-	Musical::playSequence(mySong, 104);
+	playSequence(skyrim);
 }
 
 void loop() {
 	updateBlinkerStatus();
 	updateInputs();
-	Musical::update();
+	updateSoundPlay();
 }
 
