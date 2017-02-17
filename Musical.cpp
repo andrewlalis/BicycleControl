@@ -39,15 +39,19 @@ void Musical::playSequence(short * sequence, int length)
 	songLength = length;
 	currentNote = 0;
 	lastNoteTime = 0;
+	isPlaying = true;
 }
 
 //Updates the playing song to allow multitasking.
 void Musical::update()
 {
-	if (lastNoteTime > millis() && currentNote < songLength) {
+	if (isPlaying && lastNoteTime > millis() && currentNote < songLength) {
 		//It is necessary to play the next note.
 		playNote(currentSong[currentNote * 2 + 1], currentSong[currentNote * 2 + 2]);
-		lastNoteTime = millis();
+		lastNoteTime = millis() + currentSong[currentNote * 2 + 2];
 		currentNote++;
+	}
+	if (currentNote == songLength) {
+		isPlaying = false;
 	}
 }

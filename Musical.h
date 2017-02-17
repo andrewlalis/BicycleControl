@@ -106,7 +106,7 @@ private:
 	static short BPM, Q, H, E, S, W, pin;
 	static short* currentSong;
 	static int songLength;
-	static bool isPlaying = false;
+	static bool isPlaying;
 	static int currentNote;
 	static unsigned long lastNoteTime;
 };

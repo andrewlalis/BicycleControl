@@ -63,13 +63,117 @@ unsigned long leftPressedTime = 0;
 //Right option button.
 bool rightPressed = 0;
 unsigned long rightPressedTime = 0;
-//Music variables.
-short BPM = 100;
-short Q = 60000 / BPM;
-short H = 2 * Q;
-short E = Q / 2;
-short S = Q / 4;
-short W = Q * 4;
+
+/*
+* Song file: bpm, followed by notes and a byte representing what division of a note it is.
+*/
+short mySong[] = {
+	120,
+	NOTE_D5, E,
+	NOTE_E5, E,
+	NOTE_F5, Q + E,
+	NOTE_F5, E,
+	NOTE_F5, E,
+	NOTE_G5, E,
+	NOTE_A5, Q + E,
+	NOTE_A5, E,
+	NOTE_A5, E,
+	NOTE_C5, E,//10
+	NOTE_G5, Q + E,
+	NOTE_G5, E,
+	NOTE_F5, E,
+	NOTE_E5, E,
+	NOTE_D5, Q + E,
+	NOTE_D5, E,
+	NOTE_D5, E,
+	NOTE_E5, E,
+	NOTE_F5, Q + E,
+	NOTE_F5, E,//20
+	NOTE_F5, E,
+	NOTE_G5, E,
+	NOTE_A5, Q + E,
+	NOTE_A5, E,
+	NOTE_A5, E,
+	NOTE_C5, E,
+	NOTE_D5, Q + E,
+	NOTE_D5, E,
+	NOTE_C5, E,
+	NOTE_E5, E,//30
+	NOTE_D5, Q + E,
+	NOTE_D5, E,
+	NOTE_D5, E,
+	NOTE_E5, E,
+	NOTE_F5, Q,
+	NOTE_E5, E,
+	NOTE_E5, E,
+	NOTE_D5, Q,
+	NOTE_C5, Q,
+	NOTE_B5, E,//40
+	NOTE_B5, E,
+	NOTE_A5, Q,
+	NOTE_G5, Q + E,
+	NOTE_G5, E,
+	NOTE_F5, E,
+	NOTE_A5, E,
+	NOTE_G5, Q + E,
+	NOTE_G5, Q,
+	NOTE_F5, S,
+	NOTE_E5, S,//50
+	NOTE_F5, Q,
+	NOTE_F5, S,
+	NOTE_E5, S,
+	NOTE_F5, Q,
+	NOTE_F5, S,
+	NOTE_E5, S,
+	NOTE_G5, E,
+	NOTE_F5, E,
+	NOTE_E5, E,
+	NOTE_D5, Q,//60
+	NOTE_D5, S,
+	NOTE_C5, S,
+	NOTE_D5, Q,
+	NOTE_D5, S,
+	NOTE_C5, S,
+	NOTE_D5, Q,
+	NOTE_C5, S,
+	NOTE_D5, S,
+	NOTE_E5, E,
+	NOTE_F5, E,//70
+	NOTE_C5, E,
+	NOTE_D5, Q,
+	NOTE_D5, S,
+	NOTE_E5, S,
+	NOTE_F5, Q,
+	NOTE_F5, S,
+	NOTE_G5, S,
+	NOTE_A5, Q,
+	NOTE_E5, S,
+	NOTE_F5, S,//80
+	NOTE_G5, E,
+	NOTE_F5, E,
+	NOTE_E5, E,
+	NOTE_D5, Q,
+	NOTE_D5, S,
+	NOTE_C5, S,
+	NOTE_D5, Q,
+	NOTE_D5, S,
+	NOTE_C5, S,
+	NOTE_D5, Q,//90
+	NOTE_C5, S,
+	NOTE_D5, S,
+	NOTE_E5, E,
+	NOTE_F5, E,
+	NOTE_C5, E,
+	NOTE_D5, Q + E,
+	NOTE_D5, Q,
+	NOTE_REST, E,
+	NOTE_D5, Q,
+	NOTE_REST, E,//100
+	NOTE_D5, Q,
+	NOTE_REST, E,
+	NOTE_D5, Q,
+	NOTE_REST, E
+};
 
 const short beep1[] = {
 	100,
@@ -385,10 +489,13 @@ void setup() {
 	startupScreen();
 	drawMainScreen();
 	updateAll();
+	Musical::setBuzzerPin(BUZZER);
+	Musical::playSequence(mySong, 104);
 }
 
 void loop() {
 	updateBlinkerStatus();
 	updateInputs();
+	Musical::update();
 }
 
