@@ -41,6 +41,7 @@ U8X8_SSD1306_128X64_NONAME_4W_SW_SPI screen(OLED_CLK, OLED_MOSI, OLED_CS, OLED_D
 #define IN_mode 17
 #define IN_left 18
 #define IN_right 19
+#define MODE_MAX 2
 
 //Global variables
 //Shift register buffer.
@@ -55,10 +56,8 @@ unsigned long blinkerLeftLastUpdate = 0;
 //Input control variables
 //Mode control button.
 char mode = 0;
-bool modePressed = 0;
-unsigned long modePressedTime = 0;
-bool leftPressed, rightPressed = 0;
-unsigned long leftPressedTime, rightPressedTime = 0;
+bool modePressed, leftPressed, rightPressed = 0;
+unsigned long modePressedTime, leftPressedTime, rightPressedTime = 0;
 //Music variables.
 short BPM, noteDuration;
 short* currentSequence;
@@ -68,9 +67,9 @@ unsigned long noteEndTime;
 
 short beep1[] = {
 	3, 100,
-	NOTE_A4, 4,
-	NOTE_E7, 4,
-	NOTE_C2, 4
+	NOTE_A4, 2,
+	NOTE_E6, 2,
+	NOTE_C8, 2
 };
 
 short skyrim[] = {
@@ -201,6 +200,8 @@ void drawMainScreen() {
 	writeText("+-+-+-+-+------+", 0, 1);
 	writeText("|L|R|F|B|Mode:0|", 0, 2);
 	writeText("+-+-+-+-+------+", 0, 3);
+	writeText("|Song:         |", 0, 4);
+	writeText("+--------------+", 0, 5);
 }
 
 //Draws the blinker indicators to the screen.
@@ -333,11 +334,11 @@ void updateInputs() {
 		//Mode button was pressed.
 		modePressed = 1;
 		modePressedTime = currentTime;
-		if (mode == 0) {
-			mode = 1;
+		if (mode == MODE_MAX) {
+			mode = 0;
 		}
 		else {
-			mode = 0;
+			mode++;
 		}
 		drawModeStatus();
 		//Serial.println("Mode pressed.");
@@ -522,7 +523,7 @@ void setup() {
 	startupScreen();
 	drawMainScreen();
 	updateAll();
-	playSequence(skyrim);
+	playSequence(beep1);
 }
 
 void loop() {
